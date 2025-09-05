@@ -30,7 +30,6 @@ require("sui.custom.SuiReceiverPuzzle")
 includeFile("helperfuncs.lua")
 includeFile("playerTriggers.lua")
 
-
 -- Theme parks
 includeFile("themepark/conversations/goru_conv_handler.lua")
 includeFile("themepark/conversations/mission_giver_conv_handler.lua")
@@ -130,7 +129,6 @@ includeFile("dungeon/warren/warrenComponents.lua")
 includeFile("dungeon/warren/convos/mirla_convo_handler.lua")
 includeFile("dungeon/warren/convos/oevitt_piboi_convo_handler.lua")
 includeFile("dungeon/warren/convos/manx_try_convo_handler.lua")
-includeFile("dungeon/warren/convos/captain_heff_convo_handler.lua")
 includeFile("dungeon/warren/convos/warren_worker_convo_handler.lua")
 includeFile("dungeon/corellian_corvette/conversations/corvetteTicketTakerConvoHandler.lua")
 includeFile("dungeon/corellian_corvette/conversations/corvetteTicketGiverConvoHandler.lua")
@@ -139,9 +137,11 @@ includeFile("dungeon/corellian_corvette/conversations/corvettePrisonerConvoHandl
 includeFile("dungeon/corellian_corvette/conversations/corvetteBledsoeConvoHandler.lua")
 includeFile("dungeon/corellian_corvette/conversations/corvetteIanConvoHandler.lua")
 includeFile("dungeon/corellian_corvette/conversations/corvetteVledmoConvoHandler.lua")
+includeFile("dungeon/corellian_corvette/conversations/corvetteVledmoConvoHandler.lua")
 includeFile("dungeon/corellian_corvette/corellianCorvette.lua")
 includeFile("dungeon/corellian_corvette/corvetteSpawnMaps.lua")
 includeFile("dungeon/corellian_corvette/corvetteSui.lua")
+includeFile("dungeon/corellian_corvette/sabol_stub.lua")
 includeFile("dungeon/corellian_corvette/corvetteContainerComponents.lua")
 includeFile("dungeon/corellian_corvette/corvetteMenuComponents.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_bronell_neutral_assassin.lua")
@@ -149,7 +149,7 @@ includeFile("dungeon/corellian_corvette/ticket_givers/corvette_bruce_neutral_des
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_colonel_imperial_rescue.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_crowley_rebel_destroy.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_pashna_rebel_assassin.lua")
-includeFile("dungeon/corellian_corvette/ticket_givers/corvette_sabol_imperial_assassin.lua")
+--includeFile("dungeon/corellian_corvette/ticket_givers/corvette_sabol_imperial_destroy.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_tallon_rebel_rescue.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_velso_imperial_destroy.lua")
 includeFile("dungeon/corellian_corvette/ticket_givers/corvette_yondalla_neutral_rescue.lua")
@@ -157,7 +157,6 @@ includeFile("dungeon/corellian_corvette/ticket_takers/ds_297.lua")
 includeFile("dungeon/corellian_corvette/ticket_takers/klaatu.lua")
 includeFile("dungeon/corellian_corvette/ticket_takers/lt_lance.lua")
 includeFile("dungeon/lok_bunker/lok_bunker.lua")
-
 
 -- Village
 includeFile("village/village_community_crafting.lua")
@@ -176,7 +175,6 @@ includeFile("village/intro/sith_shadow_intro_theater.lua")
 includeFile("village/multiple/fs_survey.lua")
 includeFile("village/outro/fs_outro.lua")
 includeFile("village/outro/mellichae_outro_theater.lua")
-includeFile("village/outro/old_man_outro_encounter.lua")
 includeFile("village/phase1/fs_crafting1_goto1.lua")
 includeFile("village/phase1/fs_crafting1_goto2.lua")
 includeFile("village/phase1/fs_crafting1.lua")
@@ -213,7 +211,6 @@ includeFile("village/phase3/fs_sad_2_theaters/fs_sad_2_theater_4.lua")
 includeFile("village/phase3/fs_sad_2_theaters/fs_sad_2_theater_5.lua")
 includeFile("village/phase3/fs_sad_2_theaters/fs_sad_2_theater_6.lua")
 includeFile("village/phase3/fs_sad_2_theaters/fs_sad_2_theater_7.lua")
-includeFile("village/phase3/fs_sad_2_theaters/fs_sad_2_theater_8.lua")
 includeFile("village/phase3/fs_sad2.lua")
 includeFile("village/phase4/fs_phase4.lua")
 includeFile("village/phase4/fs_crafting4_goto.lua")
@@ -230,7 +227,6 @@ includeFile("village/convos/phase1/sivarra_phase1_conv_handler.lua")
 includeFile("village/convos/phase1/med_droid_phase1_conv_handler.lua")
 includeFile("village/convos/phase1/whip_phase1_conv_handler.lua")
 includeFile("village/convos/phase1/quharek_phase1_conv_handler.lua")
-includeFile("village/convos/phase1/fs_reflex1_prisoner_conv_handler.lua")
 includeFile("village/convos/phase2/whip_phase2_conv_handler.lua")
 includeFile("village/convos/phase2/dageerin_phase2_conv_handler.lua")
 includeFile("village/convos/phase2/quharek_phase2_conv_handler.lua")
@@ -299,7 +295,6 @@ includeFile("events/bestine_election/convos/victor_questn_capitol_conv_handler.l
 includeFile("events/bestine_election/convos/victor_questp_hospital_conv_handler.lua")
 includeFile("events/bestine_election/convos/victor_questp_slums_conv_handler.lua")
 includeFile("events/bestine_election/convos/victor_visalis_conv_handler.lua")
-includeFile("events/bestine_election/convos/tour_aryon_conv_handler.lua")
 
 -- Cries of Alderaan
 includeFile("events/coa/coa.lua")
@@ -477,7 +472,6 @@ includeFile("tasks/tatooine/rakir_banai.lua")
 includeFile("tasks/tatooine/stella.lua")
 includeFile("tasks/tatooine/tekil_barje.lua")
 includeFile("tasks/tatooine/tolan_nokkar.lua")
-includeFile("tasks/tatooine/vardias_tyne.lua")
 includeFile("tasks/yavin4/captain_eso.lua")
 includeFile("tasks/yavin4/cx_425_trooper.lua")
 includeFile("tasks/yavin4/gins_darone.lua")
@@ -578,7 +572,6 @@ includeFile("poi/corellia_rebel_hideout.lua")
 includeFile("poi/corellia_stronghold.lua")
 includeFile("poi/dantooine_abandoned_rebel_base.lua")
 includeFile("poi/dantooine_dantari_village.lua")
-includeFile("poi/dantooine_mokk_stronghold.lua")
 includeFile("poi/dathomir_crash_site.lua")
 includeFile("poi/dathomir_imperial_prison.lua")
 includeFile("poi/dathomir_nightsister_stronghold.lua")
@@ -630,7 +623,7 @@ includeFile("poi/yavin4_blueleaf_temple.lua")
 includeFile("poi/yavin4_imperial_base.lua")
 includeFile("poi/yavin4_woolamander_temple.lua")
 
---Static Spawns
+-- Static Spawns
 includeFile("static_spawns/corellia_static_spawns.lua")
 includeFile("static_spawns/dantooine_static_spawns.lua")
 includeFile("static_spawns/dathomir_static_spawns_ne.lua")
@@ -647,38 +640,37 @@ includeFile("static_spawns/talus_static_spawns_south.lua")
 includeFile("static_spawns/tatooine_static_spawns_north.lua")
 includeFile("static_spawns/tatooine_static_spawns_south.lua")
 
---Yavin4
+-- Yavin4
 includeFile("static_spawns/yavin4_static_spawns.lua")
 
---Magic Eight Ball
+-- Magic Eight Ball
 includeFile("tools/MagicEightBallMenuComponent.lua")
 
---Treasure Maps
+-- Treasure Maps
 includeFile("treasure_map/EncodedDiskMenuComponent.lua")
 includeFile("treasure_map/TreasureMapMenuComponent.lua")
 
---Race Tracks
+-- Race Tracks
 includeFile("racetracks/racetracks.lua")
 
---Space
+-- Space
 includeFile("space/space_chassis_dealer_conv_handler.lua")
 
---Record Keepers
+-- Record Keepers
 includeFile("record_keepers/record_keepers.lua")
 
---Battlefields
+-- Battlefields
 includeFile("battlefields/battlefield_spawner.lua");
 
---Tests
+-- Tests
 includeFile("tests/tests.lua")
 
---Merchants
+-- Merchants
 includeFile("merchants/vendor_logic.lua")
 includeFile("merchants/vendorData.lua") -- Load this after vendor_logic
 includeFile("merchants/houseVendorData.lua")
 includeFile("merchants/halloweenvendorData.lua")
 includeFile("merchants/vendor_conv_handler.lua")
-
 
 -- Server Event Automation
 includeFile("events/ServerEventAutomation.lua")
@@ -687,5 +679,12 @@ includeFile("events/ServerEventAutomation.lua")
 includeFile("custom_content/tools/mission_direction_choice.lua")
 includeFile("custom_content/tools/mission_level_choice.lua")
 
--- Custom content
+-- Custom content (your server’s custom screenplay pack)
 includeFile("../custom_scripts/screenplays/screenplays.lua")
+
+-- Custom: Boba Fett world boss (Tatooine roam)
+-- Place file at: scripts/screenplays/boba_fett_wander.lua
+includeFile("boba_fett_wander.lua")  -- disabled on live
+includeFile("dungeon/corellian_corvette/sabol_stub.lua")
+
+-- Final safety override

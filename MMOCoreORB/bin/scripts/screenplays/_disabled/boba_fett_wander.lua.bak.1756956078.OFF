@@ -1,0 +1,161 @@
+-- Boba Fett World Boss (soft-peace leash)
+-- Single instance on Tatooine. If his current target moves > 80m away, he stops fighting (clear combat + hate).
+-- No returnHome(), no forced pathing. 4-hour respawn on death.
+
+BobaFettWanderScreenplay = ScreenPlay:new { numberOfActs = 1 }
+
+local KEY_BOSS_ID   = "BobaFettWanderScreenplay:bossId"
+local KEY_SPAWN_X   = "BobaFettWanderScreenplay:spawnX"
+local KEY_SPAWN_Y   = "BobaFettWanderScreenplay:spawnY"
+local KEY_SPAWN_Z   = "BobaFettWanderScreenplay:spawnZ"
+
+local LEASH_TO_TARGET_M = 80                -- if defender farther than this, go peaceful
+local TICK_MS            = 10 * 1000        -- every 10s
+local RESPAWN_MS         = 4 * 60 * 60 * 1000   -- 4 hours
+local FAILBACK_MS        = 5 * 60 * 1000        -- 5 minutes (if spawn fails / missing)
+
+local function getGroundZ(planet, x, y)
+    local ok, z = pcall(getTerrainHeight, planet, x, y)
+    if ok and type(z) == "number" then return z end
+    ok, z = pcall(getTerrainHeight, x, y)
+    if ok and type(z) == "number" then return z end
+    return 0
+end
+
+local function dist2d(x1, y1, x2, y2)
+    local dx, dy = x1 - x2, y1 - y2
+    return math.sqrt(dx*dx + dy*dy)
+end
+
+local function softPeace(pBoss)
+    if pBoss == nil then return end
+    local co = CreatureObject(pBoss)
+    if co ~= nil then
+        pcall(function() co:clearCombatState() end)
+        pcall(function() co:resetPosture() end)
+        pcall(function() co:removeAllBuffs() end)
+        pcall(function() co:setPvpStatusBitmask(ATTACKABLE) end) -- passive until attacked
+    end
+    pcall(function() AiAgent(pBoss):clearCombatState() end)
+    pcall(function() AiAgent(pBoss):clearHateList() end)
+end
+
+function BobaFettWanderScreenplay:start()
+    if not isZoneEnabled("tatooine") then return end
+    self:ensureSingleBoss()
+end
+
+function BobaFettWanderScreenplay:ensureSingleBoss()
+    local existingId = readData(KEY_BOSS_ID)
+    if existingId and existingId ~= 0 then
+        local pExisting = getSceneObject(existingId)
+        if pExisting ~= nil then return else deleteData(KEY_BOSS_ID) end
+    end
+    self:spawnBobaFettBoss()
+end
+
+function BobaFettWanderScreenplay:despawnIfAlive()
+    local existingId = readData(KEY_BOSS_ID)
+    if existingId and existingId ~= 0 then
+        local pExisting = getSceneObject(existingId)
+        if pExisting ~= nil then SceneObject(pExisting):destroyObjectFromWorld() end
+        deleteData(KEY_BOSS_ID)
+    end
+end
+
+function BobaFettWanderScreenplay:spawnBobaFettBoss()
+    self:despawnIfAlive()
+
+    local planet = "tatooine"
+    local spots = {
+        {x =  2500, y = -2000, z = 142},
+        {x = -3500, y = -1000, z =  37},
+        {x =  4200, y =   500, z =  13},
+        {x =   800, y = -4200, z = 180}
+    }
+    local i   = math.random(1, #spots)
+    local loc = spots[i]
+    local z   = loc.z or getGroundZ(planet, loc.x, loc.y)
+
+    local pBoss = spawnMobile(planet, "boba_fett_boss", 0, loc.x, z, loc.y, 0, 0)
+    if pBoss == nil then
+        print("BobaFettWander: spawn failed; retry in 5 minutes.")
+        createEvent(FAILBACK_MS, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+        return
+    end
+
+    writeData(KEY_BOSS_ID, SceneObject(pBoss):getObjectID())
+    writeData(KEY_SPAWN_X, loc.x)
+    writeData(KEY_SPAWN_Y, loc.y)
+    writeData(KEY_SPAWN_Z, z)
+
+    print(string.format("BobaFettWander: spawned @ (x=%d, z=%.2f, y=%d) on %s", loc.x, z, loc.y, planet))
+
+    createObserver(OBJECTDESTRUCTION, "BobaFettWanderScreenplay", "onBobaDestroyed", pBoss)
+    createEvent(TICK_MS, "BobaFettWanderScreenplay", "tickBoss", nil, "")
+end
+
+function BobaFettWanderScreenplay:onBobaDestroyed(pBoss, pKiller)
+    deleteData(KEY_BOSS_ID)
+    print("BobaFettWander: defeated. Respawning in 4 hours.")
+    createEvent(RESPAWN_MS, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+    return 0
+end
+
+function BobaFettWanderScreenplay:tickBoss()
+    local bossId = readData(KEY_BOSS_ID)
+    if not bossId or bossId == 0 then
+        createEvent(FAILBACK_MS, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+        return
+    end
+
+    local pBoss = getSceneObject(bossId)
+    if pBoss == nil then
+        deleteData(KEY_BOSS_ID)
+        createEvent(FAILBACK_MS, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+        return
+    end
+
+    local co = CreatureObject(pBoss)
+    if co ~= nil then
+        local inCombat = false
+        local ok = pcall(function() inCombat = co:isInCombat() end)
+        if ok and inCombat then
+            local pTarget = nil
+            pcall(function() pTarget = co:getDefender() end) -- safe if nil on some forks
+            if pTarget ~= nil then
+                local soBoss = SceneObject(pBoss)
+                local soTgt  = SceneObject(pTarget)
+                if soBoss ~= nil and soTgt ~= nil then
+                    local bx, by = soBoss:getWorldPositionX(), soBoss:getWorldPositionY()
+                    local tx, ty = soTgt:getWorldPositionX(),  soTgt:getWorldPositionY()
+                    local d = dist2d(bx, by, tx, ty)
+                    if d > LEASH_TO_TARGET_M then
+                        print(string.format("BobaFettWander: target beyond %dm (%.1fm). Entering peace.", LEASH_TO_TARGET_M, d))
+                        softPeace(pBoss)
+                    end
+                end
+            end
+        end
+    end
+
+    createEvent(TICK_MS, "BobaFettWanderScreenplay", "tickBoss", nil, "")
+end
+
+registerScreenPlay("BobaFettWanderScreenplay", false)
+
+-- ===== SAFETY WRAPPER: ensure start() exists and won't explode =====
+if not BobaFettWanderScreenplay then
+  BobaFettWanderScreenplay = ScreenPlay:new { numberOfActs = 0 }
+end
+
+if type(BobaFettWanderScreenplay.start) ~= "function" then
+  function BobaFettWanderScreenplay:start()
+    if type(self.startWandering) == "function" then
+      return self:startWandering()
+    end
+    print("BobaFettWanderScreenplay: startWandering() not defined; skipping")
+    return true
+  end
+end
+-- ===== END SAFETY WRAPPER =====
