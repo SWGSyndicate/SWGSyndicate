@@ -1,0 +1,80 @@
+indintra_imbru_yerevan_missions =
+{
+	{
+		missionType = "deliver",
+		primarySpawns = 
+		{ 
+			{ npcTemplate = "briska_gil", npcName = "Briska Gil" }
+		}, 
+		secondarySpawns =
+		{
+
+		},
+		itemSpawns =
+		{
+			{ itemTemplate = "object/tangible/mission/quest_item/indintra_imbru_yerevan_q1_needed.iff", itemName = "" }
+		}, 
+		rewards = 
+		{ 
+			{ rewardType = "credits", amount = 40 }
+		}
+	},
+	{
+		missionType = "deliver", 
+		primarySpawns = 
+		{ 
+			{ npcTemplate = "shaultra_loraweet", npcName = "Shaultra Loraweet" }
+		}, 
+		secondarySpawns =
+		{
+
+		}, 
+		itemSpawns = 
+		{
+			{ itemTemplate = "object/tangible/mission/quest_item/indintra_imbru_yerevan_q2_needed.iff", itemName = "" }
+		}, 
+		rewards = 
+		{
+			{ rewardType = "credits", amount = 75 }
+		}
+	}
+}
+
+npcMapIndintraImbruYerevan = 
+{ 
+	{ 
+		spawnData = { npcTemplate = "indintra_imbru_yerevan", x = -6.5, z = 1.6, y = -14, direction = 0, cellID = 4635647, position = STAND },
+		worldPosition = { x = 5143.5, y = 5639 }, 
+		npcNumber = 1,
+		stfFile = "@static_npc/rori/rori_narmle_indintra_imbru_yerevan",
+		missions = indintra_imbru_yerevan_missions
+	},
+}
+
+IndintraImbruYerevan = ThemeParkLogic:new {
+	npcMap = npcMapIndintraImbruYerevan,
+	className = "IndintraImbruYerevan",
+	screenPlayState = "indintra_imbru_yerevan_quest",
+	planetName = "rori",
+	distance = 600
+}
+
+registerScreenPlay("IndintraImbruYerevan", true)
+
+indintra_imbru_yerevan_mission_giver_conv_handler = mission_giver_conv_handler:new {
+	themePark = IndintraImbruYerevan
+}
+indintra_imbru_yerevan_mission_target_conv_handler = mission_target_conv_handler:new {
+	themePark = IndintraImbruYerevan
+}
+
+-- ===== AUTO-ADDED STUB (to prevent nil start() on load) =====
+-- If the screenplay table doesn't exist, create a minimal one.
+if (not IndintraImbruYerevan) then IndintraImbruYerevan = ScreenPlay:new { numberOfActs = 0 } end
+-- If start() is missing, provide a no-op.
+if (not IndintraImbruYerevan.start) then
+  function IndintraImbruYerevan:start()
+    return true -- no-op
+  end
+end
+-- ===== /AUTO-ADDED STUB =====

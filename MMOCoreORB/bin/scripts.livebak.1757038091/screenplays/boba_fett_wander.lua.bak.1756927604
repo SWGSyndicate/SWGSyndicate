@@ -1,0 +1,168 @@
+-- Self-contained screenplay for Boba Fett world boss
+-- One-at-a-time spawn, clean despawn, 4-hour respawn-after-death
+-- Adds a 220m leash + snap-back to prevent long-chase crashes
+
+BobaFettWanderScreenplay = ScreenPlay:new {
+    numberOfActs = 1
+}
+
+local KEY_BOSS_ID  = "BobaFettWanderScreenplay:bossId"
+local LEASH_RADIUS = 220        -- meters from spawn
+local TICK_MS      = 10 * 1000  -- check every 10 seconds
+
+-- get ground Z safely (some forks want planet,x,y; others x,y)
+local function getGroundZ(planet, x, y)
+    local ok, z = pcall(getTerrainHeight, planet, x, y)
+    if ok and type(z) == "number" then return z end
+    ok, z = pcall(getTerrainHeight, x, y)
+    if ok and type(z) == "number" then return z end
+    return 0
+end
+
+local function dist2d(x1, y1, x2, y2)
+    local dx, dy = x1 - x2, y1 - y2
+    return math.sqrt(dx*dx + dy*dy)
+end
+
+-- Safely clear combat + hate, compatible with most forks
+local function clearBossCombat(pBoss)
+    if pBoss == nil then return end
+    local co = CreatureObject(pBoss)
+    if co ~= nil then
+        pcall(function() co:clearCombatState() end)
+        pcall(function() co:resetPosture() end)
+        -- optional: keep clean when snapping back
+        pcall(function() co:removeAllBuffs() end)
+        -- force "passive until attacked"
+        pcall(function() co:setPvpStatusBitmask(ATTACKABLE) end)
+    end
+    -- Some forks expose AiAgent helpers; these pcall’s are safe if missing
+    pcall(function() AiAgent(pBoss):clearCombatState() end)
+    pcall(function() AiAgent(pBoss):clearHateList() end)
+end
+
+function BobaFettWanderScreenplay:start()
+    if not isZoneEnabled("tatooine") then
+        return
+    end
+    self:ensureSingleBoss()
+end
+
+function BobaFettWanderScreenplay:ensureSingleBoss()
+    local existingId = readData(KEY_BOSS_ID)
+    if existingId and existingId ~= 0 then
+        local pExisting = getSceneObject(existingId)
+        if pExisting ~= nil then
+            -- boss alive; ensure watchdog is ticking
+            createEvent(TICK_MS, "BobaFettWanderScreenplay", "tickBoss", nil, "")
+            return
+        else
+            deleteData(KEY_BOSS_ID)
+        end
+    end
+    self:spawnBobaFettBoss()
+end
+
+function BobaFettWanderScreenplay:despawnIfAlive()
+    local existingId = readData(KEY_BOSS_ID)
+    if existingId and existingId ~= 0 then
+        local pExisting = getSceneObject(existingId)
+        if pExisting ~= nil then
+            SceneObject(pExisting):destroyObjectFromWorld()
+        end
+        deleteData(KEY_BOSS_ID)
+        deleteData(KEY_BOSS_ID .. ":spawnX")
+        deleteData(KEY_BOSS_ID .. ":spawnY")
+        deleteData(KEY_BOSS_ID .. ":spawnZ")
+    end
+end
+
+function BobaFettWanderScreenplay:spawnBobaFettBoss()
+    self:despawnIfAlive()
+
+    local planet = "tatooine"
+    local spawnLocations = {
+        {x =  2500, y = -2000, z = 142},
+        {x = -3500, y = -1000, z =  37},
+        {x =  4200, y =   500, z =  13},
+        {x =   800, y = -4200, z = 180},
+    }
+
+    local i   = math.random(1, #spawnLocations)
+    local loc = spawnLocations[i]
+
+    -- If z looks bogus, recalc from terrain:
+    local z = loc.z
+    if not z or z < -1000 or z > 1000 then
+        z = getGroundZ(planet, loc.x, loc.y)
+    end
+
+    local pBoss = spawnMobile(planet, "boba_fett_boss", 0, loc.x, z, loc.y, 0, 0)
+    if pBoss == nil then
+        print("BobaFettWanderScreenplay: spawn failed; retry in 5 minutes.")
+        createEvent(5 * 60 * 1000, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+        return
+    end
+
+    -- Ensure he's passive until attacked (in case template flags differ)
+    pcall(function() CreatureObject(pBoss):setPvpStatusBitmask(ATTACKABLE) end)
+
+    writeData(KEY_BOSS_ID, SceneObject(pBoss):getObjectID())
+    writeData(KEY_BOSS_ID .. ":spawnX", loc.x)
+    writeData(KEY_BOSS_ID .. ":spawnY", loc.y)
+    writeData(KEY_BOSS_ID .. ":spawnZ", z)
+
+    print(string.format("Boba Fett spawned at (x=%d, z=%.2f, y=%d) on %s", loc.x, z, loc.y, planet))
+
+    createObserver(OBJECTDESTRUCTION, "BobaFettWanderScreenplay", "onBobaDestroyed", pBoss)
+
+    -- start watchdog tick loop
+    createEvent(TICK_MS, "BobaFettWanderScreenplay", "tickBoss", nil, "")
+end
+
+function BobaFettWanderScreenplay:tickBoss()
+    local bossId = readData(KEY_BOSS_ID)
+    if not bossId or bossId == 0 then
+        return 0
+    end
+
+    local pBoss = getSceneObject(bossId)
+    if pBoss == nil then
+        deleteData(KEY_BOSS_ID)
+        deleteData(KEY_BOSS_ID .. ":spawnX")
+        deleteData(KEY_BOSS_ID .. ":spawnY")
+        deleteData(KEY_BOSS_ID .. ":spawnZ")
+        return 0
+    end
+
+    local so = SceneObject(pBoss)
+    local planet = so:getZoneName()
+
+    local sx = readData(KEY_BOSS_ID .. ":spawnX") or so:getWorldPositionX()
+    local sy = readData(KEY_BOSS_ID .. ":spawnY") or so:getWorldPositionY()
+    local sz = readData(KEY_BOSS_ID .. ":spawnZ") or so:getWorldPositionZ()
+
+    local bx, by = so:getWorldPositionX(), so:getWorldPositionY()
+    local d = dist2d(bx, by, sx, sy)
+
+    if d > LEASH_RADIUS then
+        clearBossCombat(pBoss)
+        -- Teleport back to spawn (safe snap)
+        pcall(function() so:teleport(planet, sx, sz, sy, 0) end)
+    end
+
+    createEvent(TICK_MS, "BobaFettWanderScreenplay", "tickBoss", nil, "")
+    return 0
+end
+
+function BobaFettWanderScreenplay:onBobaDestroyed(pBoss, pKiller)
+    deleteData(KEY_BOSS_ID)
+    deleteData(KEY_BOSS_ID .. ":spawnX")
+    deleteData(KEY_BOSS_ID .. ":spawnY")
+    deleteData(KEY_BOSS_ID .. ":spawnZ")
+    print("Boba Fett defeated. Respawning in 4 hours.")
+    createEvent(60 * 60 * 4 * 1000, "BobaFettWanderScreenplay", "spawnBobaFettBoss", nil, "")
+    return 0
+end
+
+registerScreenPlay("BobaFettWanderScreenplay", true)

@@ -1,0 +1,6 @@
+-- Kill-switch for Boba world-boss wander (Jabba quest-giver remains).
+local function noop(...) return false end
+BobaFettWanderScreenplay = {
+  start=noop, ensureSingleBoss=noop, despawnIfAlive=noop,
+  spawnBobaFettBoss=noop, onBobaDestroyed=noop, tickBoss=noop,
+}
